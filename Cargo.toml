@@ -1,0 +1,10 @@
+[package]
+name = "castnow-desktop-rs"
+version = "0.1.0"
+authors = ["steve <steven.pack@gmail.com>"]
+
+[dependencies]
+
+[dependencies.gtk]
+version = "0.1.1"
+features = ["v3_10"]

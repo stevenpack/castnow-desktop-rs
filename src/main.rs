@@ -7,6 +7,7 @@ use gtk::prelude::*;
 use gtk::{Button, Window, WindowType};
 use std::rc::Rc;
 use std::cell::RefCell;
+use castnow::KeyCommand;
 
 fn main() {
     if gtk::init().is_err() {
@@ -25,6 +26,9 @@ fn main() {
     let pause_button = Button::new_with_label("Pause");
     v_box.pack_start(&pause_button, false, false, 0);
 
+     let mute_button = Button::new_with_label("Mute");
+    v_box.pack_start(&mute_button, false, false, 0);
+
     window.add(&v_box);   
     window.show_all();
 
@@ -38,8 +42,14 @@ fn main() {
 
     let s1 = shared.clone();
      pause_button.connect_clicked(move |_| {
-        println!("Clicked!");
-        s1.borrow_mut().pause();
+        println!("Pause clicked!");
+        s1.borrow_mut().execute(KeyCommand::Pause);
+    });
+
+    let s3 = shared.clone();
+     mute_button.connect_clicked(move |_| {
+        println!("Mute clicked!");
+        s3.borrow_mut().execute(KeyCommand::Mute);
     });
 
     let s2 = shared.clone();

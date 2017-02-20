@@ -13,7 +13,7 @@ pub enum KeyCommand {
 }
 
 impl KeyCommand {
-    fn get_key(cmd: KeyCommand) -> &'static str {
+    pub fn get_key(cmd: KeyCommand) -> &'static str {
         match cmd {
             KeyCommand::Pause => "space",
             KeyCommand::Mute => "m",
@@ -28,10 +28,7 @@ struct CastNow {
 impl CastNow {
 
     pub fn new() -> CastNow {
-
-        let s = KeyCommand::get_key(KeyCommand::Mute);
-        println!("action {:?}", s);
-
+        
         return CastNow{
         };
     }

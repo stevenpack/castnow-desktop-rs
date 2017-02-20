@@ -1,6 +1,8 @@
 use std::io::Write;
 use std::process::{Command, Child, Stdio};
 use std::result::Result;
+use castnow::KeyCommand;
+
 pub struct Launcher {
     child: Option<Child>
 }
@@ -29,7 +31,29 @@ impl Launcher {
         }        
     }
 
-    // pub fn pause(&mut self) -> Result<u32, &'static str> {
+   
+
+    pub fn execute(&self, cmd: KeyCommand) {
+        let key = KeyCommand::get_key(cmd);
+        let shell_cmd = format!("castnow --command {0} --quiet --exit", key);
+        println!("executing: castnow with {:?}", key);
+
+        let res_spawn = Command::new("sh")
+                        .arg("-c")
+                        //.arg("echo hello")
+                        .arg(shell_cmd)
+                        .spawn();
+
+        match res_spawn {
+            Ok(child) => {
+                println!("PID {:?}", child.id());
+            },
+            Err(e) => println!("Spawn failed {:?}", e)
+        }         
+    }
+}
+
+ // pub fn pause(&mut self) -> Result<u32, &'static str> {
     //     if self.child.is_none() {
     //         return Err("No child process")
     //     }
@@ -45,24 +69,3 @@ impl Launcher {
     //     }
     //     unreachable!("No child or stdin should have been picked up.");
     // }
-
-    pub fn pause(&self) {
-    let output = Command::new("sh")
-                        .arg("-c")
-                        //.arg("echo hello")
-                        .arg("castnow --command space --quiet --exit")
-                        .spawn();
-                        //.output()
-                        //.expect("failed to execute process");
-
-    // let hello = String::from_utf8(output.stdout).unwrap();
-    // println!("{:?}", hello);
-}
-}
-
-// pub fn launch(cmd: &mut Command) -> Child {
-//     let child = cmd.spawn().expect("failed to execute process");
-//     println!("Launched");
-//     return child;
-// }
-

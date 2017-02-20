@@ -16,11 +16,8 @@ impl Launcher {
 
     pub fn launch(&mut self) {
         let res_spawn = Command::new("castnow")
-                        //.arg("-c")
-                        //.arg("echo hello")
                         .arg("/home/steve/Downloads/SampleVideo_1280x720_5mb.mp4")
                         .arg("--exit")
-                        //.stdin(Stdio::piped())
                         .spawn();
         match res_spawn {
             Ok(child) => {
@@ -31,23 +28,18 @@ impl Launcher {
         }        
     }
 
-   
-
-    pub fn execute(&self, cmd: KeyCommand) {
+    pub fn execute(&self, cmd: &KeyCommand) {
         let key = KeyCommand::get_key(cmd);
         let shell_cmd = format!("castnow --command {0} --quiet --exit", key);
-        println!("executing: castnow with {:?}", key);
+        println!("executing: sh -c {}", shell_cmd);
 
         let res_spawn = Command::new("sh")
                         .arg("-c")
-                        //.arg("echo hello")
                         .arg(shell_cmd)
                         .spawn();
 
         match res_spawn {
-            Ok(child) => {
-                println!("PID {:?}", child.id());
-            },
+            Ok(child) => println!("PID {:?}", child.id()),
             Err(e) => println!("Spawn failed {:?}", e)
         }         
     }

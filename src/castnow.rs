@@ -1,3 +1,4 @@
+use launcher::Launcher;
 
 pub enum KeyCommand {
     Pause,
@@ -16,19 +17,22 @@ impl KeyCommand {
 }
 
 pub struct CastNow {
+    launcher: Launcher
 }
 
 impl CastNow {
 
     pub fn new() -> CastNow {
-        
         return CastNow{
+            launcher: Launcher::new()
         };
     }
 
+    pub fn load(&self, file: String) {
+        self.launcher.load(file);
+    }
+
     pub fn execute(&self, command: &KeyCommand) {
-        match command {
-            command => println!("{:?}", KeyCommand::get_key(command))
-        }
+        self.launcher.execute(command);
     }
 }

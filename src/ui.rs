@@ -22,6 +22,14 @@ pub fn build() {
     let castnow = CastNow::new();
     let shared: SharedCastNow =  Rc::new(RefCell::new(castnow));
 
+    let load_button = Button::new_with_label("Load");
+    let shared_castnow = shared.clone();
+     load_button.connect_clicked(move |_| {
+        println!("{} clicked!", "Load");
+        shared_castnow.borrow_mut().load("/home/steve/Downloads/SampleVideo_1280x720_5mb.mp".to_string());
+    });
+    v_box.pack_start(&load_button, false, false, 0);
+
     add_button("Pause", shared.clone(), KeyCommand::Pause, &v_box);
     add_button("Mute", shared.clone(), KeyCommand::Mute, &v_box);
     add_button("Stop", shared.clone(), KeyCommand::Stop, &v_box);

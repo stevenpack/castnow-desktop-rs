@@ -1,47 +1,53 @@
-use std::io::Write;
-use std::process::{Command, Child, Stdio};
-use std::result::Result;
+use std::process::{Command};
 use castnow::KeyCommand;
 
 pub struct Launcher {
-    child: Option<Child>
+    //child: Option<Child>
 }
 
 impl Launcher {
     pub fn new() -> Launcher {
         return Launcher {
-            child: None
+            //child: None
         };
     }
 
-    pub fn launch(&mut self) {
-        let res_spawn = Command::new("castnow")
-                        .arg("/home/steve/Downloads/SampleVideo_1280x720_5mb.mp4")
-                        .arg("--exit")
-                        .spawn();
-        match res_spawn {
-            Ok(child) => {
-                println!("PID {:?}", child.id());
-                self.child = Some(child);
-            },
-            Err(e) => println!("Spawn failed {:?}", e)
-        }        
+    // pub fn launch(&mut self) {
+    //     let res_spawn = Command::new("castnow")
+    //                     .arg("/home/steve/Downloads/SampleVideo_1280x720_5mb.mp4")
+    //                     .arg("--exit")
+    //                     .spawn();
+    //     match res_spawn {
+    //         Ok(child) => {
+    //             println!("PID {:?}", child.id());
+    //             //self.child = Some(child);
+    //         },
+    //         Err(e) => println!("Spawn failed {:?}", e)
+    //     }        
+    // }
+
+    pub fn load(&self, file_path: String) {
+        let shell_cmd = format!("castnow '{0}' --quiet --exit", file_path);
+        self.execute_command(shell_cmd);
     }
 
     pub fn execute(&self, cmd: &KeyCommand) {
         let key = KeyCommand::get_key(cmd);
         let shell_cmd = format!("castnow --command {0} --quiet --exit", key);
-        println!("executing: sh -c {}", shell_cmd);
+        self.execute_command(shell_cmd);            
+    }
 
+    pub fn execute_command(&self, shell_cmd: String) {
+        println!("executing: sh -c {}", shell_cmd);
         let res_spawn = Command::new("sh")
-                        .arg("-c")
-                        .arg(shell_cmd)
-                        .spawn();
+                                .arg("-c")
+                                .arg(shell_cmd)
+                                .spawn();
 
         match res_spawn {
             Ok(child) => println!("PID {:?}", child.id()),
             Err(e) => println!("Spawn failed {:?}", e)
-        }         
+        }   
     }
 }
 

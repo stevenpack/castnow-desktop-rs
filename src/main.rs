@@ -1,10 +1,12 @@
 extern crate gtk;
 
+mod launcher;
+mod castnow;
+
 use gtk::prelude::*;
 use gtk::{Button, Window, WindowType};
 use std::rc::Rc;
 use std::cell::RefCell;
-mod launcher;
 
 fn main() {
     if gtk::init().is_err() {

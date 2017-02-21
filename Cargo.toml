@@ -4,7 +4,9 @@ version = "0.1.0"
 authors = ["steve <steven.pack@gmail.com>"]
 
 [dependencies]
-
+env_logger = "0.4"
+glib = { git = "https://github.com/gtk-rs/glib" }
+gdk = { git = "https://github.com/gtk-rs/gdk" }
 [dependencies.gtk]
-version = "0.1.1"
-features = ["v3_10"]
+git = "https://github.com/gtk-rs/gtk"
+features = ["v3_14"]

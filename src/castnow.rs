@@ -1,5 +1,6 @@
-use launcher::Launcher;
+use shell::Launcher;
 
+#[derive(Debug)]
 pub struct Command {
     pub key: KeyCommand,
     pub state: String
@@ -18,6 +19,7 @@ impl Command {
     }
 }
 
+#[derive(Debug)]
 pub enum KeyCommand {
     Pause,
     Mute,

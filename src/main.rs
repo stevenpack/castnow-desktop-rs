@@ -1,6 +1,6 @@
 extern crate gtk;
 
-mod launcher;
+mod shell;
 mod castnow;
 mod ui;
 mod command;

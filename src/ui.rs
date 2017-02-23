@@ -5,6 +5,8 @@ use gtk::Builder;
 use gtk::{Window, WindowType};
 use gtk::{Button, FileChooserDialog, Entry};
 use std::sync::mpsc::Sender;
+use std::rc::Rc;
+
 use castnow::{KeyCommand, Command};
 
 pub struct UiBuilder {
@@ -30,52 +32,54 @@ impl UiBuilder {
             Inhibit(false)
         });
 
+        let shared_tx = Rc::new(tx);
+
         let file_chooser_button: Button = Self::get_obj(&builder, "popupFileChooserButton");
         let file_path_entry: Entry = Self::get_obj(&builder, "filePathEntry1");
-        let load_button: Button = Self::get_obj(&builder, "playButton");
-        let mute_button: Button = Self::get_obj(&builder, "muteButton");
-        let stop_button: Button = Self::get_obj(&builder, "stopButton");
+        let (load_button, load_button_tx): (Button, _) = Self::get_obj_ext(&builder, "playButton", shared_tx.clone());
+        let (mute_button, mute_button_tx): (Button, _) = Self::get_obj_ext(&builder, "muteButton", shared_tx.clone());
+        let (stop_button, stop_button_tx): (Button, _) = Self::get_obj_ext(&builder, "stopButton", shared_tx.clone());
 
         let file_path_entry1 = file_path_entry.clone();
-        file_chooser_button.connect_clicked(move |_| {
-            println!("{} clicked!", "Popup file dialog");
-            
-            let dialog = FileChooserDialog::new (
-                        Some("Choose DireFilectory"),
-                        Some(&Window::new(WindowType::Popup)),
-                        gtk::FileChooserAction::Open,
-            );
-            dialog.add_button("Cancel", gtk::ResponseType::Cancel.into());
-            dialog.add_button("Select", gtk::ResponseType::Ok.into());
-
-            if dialog.run() == gtk::ResponseType::Ok.into() {
-                dialog.get_filename().map(|path| path.to_str().map(|text| file_path_entry1.set_text(text)));
-            }
-            dialog.destroy();   
-        });
-
-        let a = tx.clone();
-        let b = tx.clone();
-        let c = tx.clone();
+        file_chooser_button.connect_clicked(move |_| Self::file_chooser_clicked(&file_path_entry1));
+        
         load_button.connect_clicked(move |_| {
             let path = file_path_entry.get_text();
-            Self::send(&a, KeyCommand::Load, path)
+            Self::send(&load_button_tx, KeyCommand::Load, path)
         });
 
-        mute_button.connect_clicked(move |_| Self::send(&b, KeyCommand::Mute, None));
-        stop_button.connect_clicked(move |_| Self::send(&c, KeyCommand::Stop, None));
+        mute_button.connect_clicked(move |_| Self::send(&mute_button_tx, KeyCommand::Mute, None));
+        stop_button.connect_clicked(move |_| Self::send(&stop_button_tx, KeyCommand::Stop, None));
         
         window.show_all();    
+    }
+
+    fn file_chooser_clicked(file_path_entry: &Entry) {
+        let dialog = FileChooserDialog::new (
+                    Some("Choose DireFilectory"),
+                    Some(&Window::new(WindowType::Popup)),
+                    gtk::FileChooserAction::Open,
+        );
+        dialog.add_button("Cancel", gtk::ResponseType::Cancel.into());
+        dialog.add_button("Select", gtk::ResponseType::Ok.into());
+
+        if dialog.run() == gtk::ResponseType::Ok.into() {
+            dialog.get_filename().map(|path| path.to_str().map(|text| file_path_entry.set_text(text)));
+        }
+        dialog.destroy();  
     }
 
     fn send(tx: &Sender<Command>, key: KeyCommand, state: Option<String>) {
         tx.send(Command::new_with_state(key, state.unwrap_or_default())).map_err(|e| println!("Failed to send {:?}", e)).ok();
     }
 
+    fn get_obj_ext<T: gtk::IsA<gtk::Object>>(builder: &Builder, name: &'static str, tx: Rc<Sender<Command>>) -> (T, Rc<Sender<Command>>) {
+        return (Self::get_obj(builder, name), tx);
+    }
+
     fn get_obj<T: gtk::IsA<gtk::Object>>(builder: &Builder, name: &'static str) -> T {
-        let gtk_obj = builder.get_object(name);
-        if gtk_obj.is_some() {
-            return gtk_obj.unwrap();
+        if let Some(gtk_obj) = builder.get_object(name) {
+            return gtk_obj;
         }
         panic!(format!("UI file corrupted. Unknown element {}", name));
     }

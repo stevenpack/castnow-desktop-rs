@@ -2,7 +2,6 @@ use std::thread;
 use std::thread::{JoinHandle};
 use std::sync::mpsc::Receiver;
 use std::error::Error;
-
 use castnow::{NodeModuleWrapper, Command, KeyCommand};
 
 pub struct Processor {

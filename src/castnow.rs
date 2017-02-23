@@ -1,38 +1,58 @@
 use launcher::Launcher;
 
-pub enum KeyCommand {
-    Pause,
-    Mute,
-    Stop
+pub struct Command {
+    pub key: KeyCommand,
+    pub state: String
 }
 
-impl KeyCommand {
-    pub fn get_key(cmd: &KeyCommand) -> &'static str {
-        match cmd {
-            &KeyCommand::Pause => "space",
-            &KeyCommand::Mute => "m",
-            &KeyCommand::Stop => "s",
+impl Command {
+    pub fn new(key: KeyCommand) -> Command {
+        Self::new_with_state(key, String::default())
+    }
+
+    pub fn new_with_state(key: KeyCommand, state: String) -> Command {
+        Command {
+            key: key,
+            state: state
         }
     }
 }
 
-pub struct CastNow {
+pub enum KeyCommand {
+    Pause,
+    Mute,
+    Stop,
+    Load
+}
+
+impl KeyCommand {
+    pub fn get_key(key: &KeyCommand) -> &'static str {
+        match key {
+            &KeyCommand::Pause => "space",
+            &KeyCommand::Mute => "m",
+            &KeyCommand::Stop => "s",
+            _ => "no key assigned"
+        }
+    }
+}
+
+pub struct NodeModuleWrapper {
     launcher: Launcher
 }
 
-impl CastNow {
+impl NodeModuleWrapper {
 
-    pub fn new() -> CastNow {
-        return CastNow{
+    pub fn new() -> NodeModuleWrapper {
+        return NodeModuleWrapper{
             launcher: Launcher::new()
         };
     }
 
-    pub fn load(&self, file: String) {
+    pub fn load(&self, file: &String) {
         self.launcher.load(file);
     }
 
-    pub fn execute(&self, command: &KeyCommand) {
-        self.launcher.execute(command);
+    pub fn execute(&self, command: &Command) {
+        self.launcher.execute(&command.key);
     }
 }

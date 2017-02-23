@@ -26,7 +26,7 @@ impl Launcher {
     //     }        
     // }
 
-    pub fn load(&self, file_path: String) {
+    pub fn load(&self, file_path: &String) {
         let shell_cmd = format!("castnow '{0}' --quiet --exit", file_path);
         self.execute_command(shell_cmd);
     }

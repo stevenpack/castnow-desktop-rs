@@ -3,4 +3,4 @@ Cargo.lock
 target
 .vscode
 talk.txt
-src/*.glade~
+src/ui/*.glade~

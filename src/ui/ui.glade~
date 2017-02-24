@@ -8,7 +8,7 @@
     <property name="program_name">castnow.rs</property>
     <property name="version">0.1</property>
     <property name="website_label" translatable="yes">Front end for castnow node module in Rust</property>
-    <property name="logo">icon_antenna.png</property>
+    <property name="logo_icon_name">image-missing</property>
     <property name="license_type">mit-x11</property>
     <child internal-child="vbox">
       <object class="GtkBox" id="aboutdialog-vbox1">
@@ -34,7 +34,6 @@
   </object>
   <object class="GtkApplicationWindow" id="applicationwindow1">
     <property name="can_focus">False</property>
-    <property name="icon">icon_antenna.png</property>
     <property name="show_menubar">False</property>
     <child>
       <object class="GtkGrid" id="grid1">

@@ -1,9 +1,12 @@
+#[macro_use]
+extern crate lazy_static;
 extern crate gtk;
 
 mod shell;
 mod castnow;
 mod ui;
 mod command;
+mod state;
 
 use std::sync::mpsc::channel;
 
@@ -15,11 +18,10 @@ fn main() {
 
     //UI sends commands commands to Processor running on a different thread to the UI
     let (tx, rx) = channel::<castnow::Command>();
-    let command_processor = command::Processor::new();
-    let ui = ui::UiBuilder::new();
+    let command_processor = command::Processor::new();    
 
     command_processor.start(rx);
-    ui.build(tx);
+    ui::build(tx);
     
     gtk::main();
 }

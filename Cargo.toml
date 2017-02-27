@@ -4,6 +4,7 @@ version = "0.1.0"
 authors = ["steve <steven.pack@gmail.com>"]
 
 [dependencies]
+lazy_static = "0.2"
 env_logger = "0.4"
 glib = { git = "https://github.com/gtk-rs/glib" }
 gdk = { git = "https://github.com/gtk-rs/gdk" }

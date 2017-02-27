@@ -1,7 +1,7 @@
 use std::fmt;
 use castnow::KeyCommand;
 
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy)]
 pub enum State {
     Initial,
     Loading,
@@ -14,8 +14,8 @@ pub enum State {
 
 impl State {
     pub fn next(current: &State, cmd: &KeyCommand) -> State {
-        match current {
-            &State::Initial => {
+        let new_state = match *current {
+            State::Initial => {
                 match *cmd {
                     KeyCommand::Load => State::Loading,
                     KeyCommand::Mute => State::Initial,
@@ -23,7 +23,7 @@ impl State {
                     KeyCommand::Stop => State::Initial
                 }
             },
-            &State::Loading => {
+            State::Loading => {
                 match *cmd {
                     KeyCommand::Load => State::Loading,
                     KeyCommand::Mute => State::Loading,
@@ -31,7 +31,7 @@ impl State {
                     KeyCommand::Stop => State::Stopping,                    
                 }
             },
-            &State::Loaded => {
+            State::Loaded => {
                 match *cmd {
                     KeyCommand::Load => State::Loading,
                     KeyCommand::Mute => State::Loaded,
@@ -39,7 +39,7 @@ impl State {
                     KeyCommand::Stop => State::Loaded,
                 }
             },
-            &State::Paused => {
+            State::Paused => {
                 match *cmd {
                     KeyCommand::Load => State::Loading,
                     KeyCommand::Mute => State::Paused,
@@ -47,7 +47,7 @@ impl State {
                     KeyCommand::Stop => State::Stopped,
                 }
             },
-            &State::Playing => {
+            State::Playing => {
                 match *cmd {
                     KeyCommand::Load => State::Loading,
                     KeyCommand::Mute => State::Playing,
@@ -55,7 +55,7 @@ impl State {
                     KeyCommand::Stop => State::Stopped
                 }
             },
-            &State::Stopping => {
+            State::Stopping => {
                 match *cmd {
                     KeyCommand::Load => State::Loading,
                     KeyCommand::Mute => State::Stopping,
@@ -63,7 +63,7 @@ impl State {
                     KeyCommand::Stop => State::Stopping
                 }
             }
-            &State::Stopped => {
+            State::Stopped => {
                 match *cmd { 
                     KeyCommand::Load => State::Loading,
                     KeyCommand::Mute => State::Stopped,
@@ -71,7 +71,9 @@ impl State {
                     KeyCommand::Stop => State::Stopped
                 }
             }
-        }
+        };
+        println!("{:?} -> {:?}", current, new_state);
+        new_state        
     }
     
 }

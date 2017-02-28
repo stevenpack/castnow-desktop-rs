@@ -9,7 +9,8 @@ pub enum State {
     Stopping,
     Stopped,
     Playing,
-    Paused
+    Paused,
+    Error
 }
 
 impl State {
@@ -68,6 +69,14 @@ impl State {
                     KeyCommand::Load => State::Loading,
                     KeyCommand::Mute => State::Stopped,
                     KeyCommand::Pause => State::Stopped,
+                    KeyCommand::Stop => State::Stopped
+                }
+            },
+            State::Error => {
+                match *cmd {
+                    KeyCommand::Load => State::Loading,
+                    KeyCommand::Mute => State::Error,
+                    KeyCommand::Pause => State::Paused,
                     KeyCommand::Stop => State::Stopped
                 }
             }

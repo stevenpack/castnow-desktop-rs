@@ -17,11 +17,13 @@ fn main() {
     }
 
     //UI sends commands commands to Processor running on a different thread to the UI
-    let (tx, rx) = channel::<castnow::Command>();
+    let (tx1, rx1) = channel::<castnow::Command>();
+    let (tx2, rx2) = channel::<state::State>();
+
     let command_processor = command::Processor::new();    
 
-    command_processor.start(rx);
-    ui::build(tx);
+    command_processor.start(rx1, tx2);
+    ui::build(tx1, rx2);
     
     gtk::main();
 }

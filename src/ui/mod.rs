@@ -1,37 +1,19 @@
 extern crate gtk;
 
+mod glade;
+
 use gtk::prelude::*;
-use gtk::Builder;
 use gtk::{Window, WindowType};
 use gtk::{Button, FileChooserDialog, Entry};
-use std::sync::mpsc::Sender;
-use std::sync::Mutex;
+use std::sync::mpsc::{Sender, Receiver};
+use std::sync::{Arc,Mutex};
 use std::rc::Rc;
 use std::clone::Clone;
+use std::thread;
+
 use castnow::{KeyCommand, Command};
 use state::State;
-
-pub struct GladeObjectFactory {
-    builder: Builder
-}
-
-impl GladeObjectFactory {
-    pub fn new() -> GladeObjectFactory {
-        // Load glade file  
-        let glade_str = include_str!("ui.glade");
-        let builder = Builder::new_from_string(glade_str);
-        GladeObjectFactory {
-            builder: builder
-        }
-    }
-
-    pub fn get<T: gtk::IsA<gtk::Object>>(&self, name: &'static str) -> T {
-        if let Some(gtk_obj) = self.builder.get_object(name) {
-            return gtk_obj;
-        }
-        panic!(format!("UI file corrupted. Unknown element of this type '{}'", name));
-    }    
-}
+use self::glade::GladeObjectFactory;
 
 struct UiState {
     state: State
@@ -55,12 +37,37 @@ impl UiState {
 }
 
 lazy_static! {
-    static ref ui_state: Mutex<UiState> = Mutex::new(UiState::new());
+    static ref UI_STATE: Mutex<UiState> = Mutex::new(UiState::new());
 }
 
-pub fn build(tx: Sender<Command>) {
+fn current_state() -> State {
+    match UI_STATE.lock() {
+        Ok(inner) => inner.state,
+        Err(e) => {
+            println!("Couldn't acquire UI_STATE lock {:?}", e);
+            State::Error        
+        }
+    }
+}
+
+pub fn build(tx: Sender<Command>, rx: Receiver<State>) {
 
     let factory = GladeObjectFactory::new();
+
+    let file_path_entry: Entry = factory.get("filePathEntry1");
+    let state_label = factory.get::<gtk::Label>("stateLabel");
+    //let state_labelx = Arc::new(state_label.clone());
+
+    gtk::timeout_add(100, move || {
+        //Render anything in the render queue
+        while let Ok(state) = rx.try_recv() {
+            println!("Received state in ui updater thread {:?}", state);
+            UI_STATE.lock().unwrap().set_state(state);  
+            render(&state_label, current_state()); 
+        }
+        //So this will get invoked on every timeout interval, but the main thread does that anyway
+        Continue(true)
+    });
     
     // Create Window   
     let window : gtk::Window = factory.get("applicationwindow1");
@@ -81,7 +88,7 @@ pub fn build(tx: Sender<Command>) {
     let open_menu_item = factory.get::<gtk::MenuItem>("openMenuItem");
     
     let state_label = factory.get::<gtk::Label>("stateLabel");
-    render(&state_label, ui_state.lock().unwrap().state);
+    render(&state_label, current_state());
 
     let file_path_entry1 = file_path_entry.clone();
     open_menu_item.connect_activate(move |_| popup_file_chooser(&file_path_entry1));
@@ -95,16 +102,16 @@ pub fn build(tx: Sender<Command>) {
     load_button.connect_clicked(move |_| {
         let path = file_path_entry.get_text();
         send(&load_button_tx, KeyCommand::Load, path);
-        ui_state.lock().unwrap().transition_to(KeyCommand::Load);
-        render(&state_label2, ui_state.lock().unwrap().state);
+        let new_state = UI_STATE.lock().unwrap().transition_to(KeyCommand::Load);
+        render(&state_label2, new_state);
     });
 
     mute_button.connect_clicked(move |_| send(&mute_button_tx, KeyCommand::Mute, None));
     let state_label1 = state_label.clone();
     stop_button.connect_clicked(move |_| {
         send(&stop_button_tx, KeyCommand::Stop, None);
-        ui_state.lock().unwrap().transition_to(KeyCommand::Stop);
-        render(&state_label1, ui_state.lock().unwrap().state);
+        UI_STATE.lock().unwrap().transition_to(KeyCommand::Stop);
+        render(&state_label1, current_state());
     });
     
     window.show_all();    

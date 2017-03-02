@@ -1,0 +1,35 @@
+
+
+pub struct UiBuilder {
+    pub tx: Option<Sender<Command>>, 
+    pub rx: Option<Receiver<State>>
+}
+
+impl UiBuilder {
+
+    pub fn new() -> UiBuilder {
+        UiBuilder {
+            tx: None,
+            rx: None
+        }
+    }
+
+    pub fn init(&mut self, tx: Sender<Command>, rx: Receiver<State>) {
+       self.tx = Some(tx);
+       self.rx = Some(rx);
+    }
+
+    pub fn build(&'static self) {
+        let factory = GladeObjectFactory::new();
+
+        let mute_button: Button = factory.get("muteButton");
+        mute_button.connect_clicked(move |_| self.send(KeyCommand::Mute, None));
+    }
+
+    fn send(&'static self, key: KeyCommand, state_arg: Option<String>) {
+        let cmd = Command::new_with_state(key, state_arg.unwrap_or_default());
+        self.tx.unwrap().send(cmd).map_err(|e| println!("Failed to send {:?}", e)).ok();
+}
+}
+
+can't satisfy static

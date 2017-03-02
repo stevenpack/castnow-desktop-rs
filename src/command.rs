@@ -4,7 +4,6 @@ use std::sync::mpsc::{Sender, Receiver};
 use std::error::Error;
 use castnow::{NodeModuleWrapper, Command, KeyCommand};
 use state::State;
-
 pub struct Processor {
 }
 

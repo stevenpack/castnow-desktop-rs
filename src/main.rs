@@ -21,9 +21,11 @@ fn main() {
     let (tx2, rx2) = channel::<state::State>();
 
     let command_processor = command::Processor::new();    
-
     command_processor.start(rx1, tx2);
-    ui::build(tx1, rx2);
+    //ui::build(tx1, rx2);
+    let app = ui::AppState::new_rc();
+    let app_rc = app.clone();
+    app.init(app_rc, rx2, tx1);
     
     gtk::main();
 }

@@ -53,8 +53,7 @@ impl AppState {
     }
 
     pub fn init(&self, self_rc: Rc<Self>, rx: Receiver<State>, tx: Sender<Command>) {
-
-        let mut channels = self.channels.borrow_mut();
+        let mut channels = self_rc.channels.borrow_mut();
         channels.rx = Some(rx);
         channels.tx = Some(tx);
 
@@ -64,7 +63,7 @@ impl AppState {
     }
 
     fn attach_handlers(&self, self_rc: &Rc<Self>) {
-        let widgets = self.widgets.borrow_mut();        
+        let widgets = self.widgets.borrow();        
         if let Some(ref load_button) = widgets.load_button {
             let self_clone = self_rc.clone();
             load_button.connect_clicked(move |_| handlers::load_clicked(&self_clone));
@@ -73,19 +72,29 @@ impl AppState {
             let self_clone = self_rc.clone();
             stop_button.connect_clicked(move |_| handlers::load_clicked(&self_clone));
         }
+
+        if let Some(ref window) = widgets.win {
+            window.connect_delete_event(|_, _| {
+                gtk::main_quit();
+                Inhibit(false)
+            });
+            window.show_all();
+        }
     }
 
     fn build_widgets(&self) {
         let mut widgets = self.widgets.borrow_mut();
         let factory = GladeObjectFactory::new();
         
+        widgets.win = Some(factory.get("applicationwindow1"));
+        //window.set_title("castnow desktop-rs");
         widgets.file_path_entry = Some(factory.get("filePathEntry1"));
         widgets.load_button = Some(factory.get("playButton"));
         widgets.state_label = Some(factory.get("stateLabel"));
     }
 
     fn render_dirty(&self) {
-        let widgets = self.widgets.borrow_mut();
+        let widgets = self.widgets.borrow();
         let model = self.model.borrow();
         //if flag is dirty
         if let Some(ref state_label) = widgets.state_label {
@@ -94,13 +103,19 @@ impl AppState {
     }
 
     fn start_rendering_timer(&self, self_rc: &Rc<Self>) {
-        let self_clone = self_rc.clone();            
+        let self_clone = self_rc.clone();
         gtk::timeout_add(100, move || {
             //Render anything in the render queue
             if let Some(ref rx) = self_clone.channels.borrow().rx {
                 while let Ok(state) = rx.try_recv() {
                     println!("Received state in ui updater thread {:?}", state);
                     //let's assume we also got some name/value pairs with enough info to locate our widget and render it
+                    
+                    //Modifying the model and updating it must be separate scopes
+                    {
+                        let mut model = self_clone.model.borrow_mut();
+                        model.status = format!("{}", state);
+                    }                        
                     
                     self_clone.render_dirty(); 
                 }
@@ -129,12 +144,12 @@ impl AppChannels {
 #[derive(Clone)]
 pub struct AppWidgets {
     app:                    Option<gtk::Application>,    
-    win:                    Option<gtk::ApplicationWindow>,
+    win:                    Option<gtk::Window>,
     file_path_entry:        Option<gtk::Entry>,
     load_button:            Option<gtk::Button>,
     stop_button:            Option<gtk::Button>,
     //load_button_dirty:    bool,
-    state_label:            Option<gtk::Entry>
+    state_label:            Option<gtk::Label>
 }
 
 impl AppWidgets {

@@ -1,3 +1,4 @@
+use std::io::Error;
 use std::process::{Command};
 use castnow::KeyCommand;
 
@@ -11,18 +12,18 @@ impl Launcher {
         };
     }
 
-    pub fn load(&self, file_path: &String) {
+    pub fn load(&self, file_path: &String) -> Result<(),Error> {
         let shell_cmd = format!("castnow '{0}' --quiet --exit", file_path);
-        self.execute_command(shell_cmd);
+        self.execute_command(shell_cmd)
     }
 
-    pub fn execute(&self, cmd: &KeyCommand) {
+    pub fn execute(&self, cmd: &KeyCommand) -> Result<(),Error> {
         let key = KeyCommand::get_key(cmd);
         let shell_cmd = format!("castnow --command {0} --quiet --exit", key);
-        self.execute_command(shell_cmd);            
+        self.execute_command(shell_cmd)        
     }
 
-    pub fn execute_command(&self, shell_cmd: String) {
+    pub fn execute_command(&self, shell_cmd: String) -> Result<(),Error> {
         println!("executing: sh -c {}", shell_cmd);
         let res_spawn = Command::new("sh")
                                 .arg("-c")
@@ -30,8 +31,15 @@ impl Launcher {
                                 .spawn();
 
         match res_spawn {
-            Ok(child) => println!("PID {:?}", child.id()),
-            Err(e) => println!("Spawn failed {:?}", e)
-        }   
+            Ok(child) => {
+                println!("PID {:?}", child.id());
+                Ok(())
+            }
+            Err(e) => {
+                println!("Spawn failed {:?}", e);
+                Err(e)
+            }
+        }
+           
     }
 }

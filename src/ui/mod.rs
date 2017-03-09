@@ -2,7 +2,6 @@ extern crate gtk;
 
 mod glade;
 mod handlers;
-mod ui_state;
 mod widgets;
 
 use std::cell::{RefCell};
@@ -18,9 +17,9 @@ use std::thread;
 use castnow::{KeyCommand, Command};
 use state::State;
 use self::glade::GladeObjectFactory;
-use self::ui_state::{UiState, Channel};
 
 pub struct AppModel {
+    state: State,
     status: String,
     playing: bool,
     path: String,
@@ -36,6 +35,7 @@ pub struct AppState {
 impl AppModel {
     fn new() -> AppModel {
         AppModel {
+            state: State::Initial,
             status: "Ready".to_string(),
             playing: false,
             path: String::default(),
@@ -73,7 +73,7 @@ impl AppState {
         }
         if let Some(ref play_button) = widgets.play_button {
             let self_clone = self_rc.clone();
-            play_button.connect_clicked(move |_| handlers::load_clicked(&self_clone));
+            play_button.connect_clicked(move |_| handlers::play_clicked(&self_clone));
         }
         if let Some(ref stop_button) = widgets.stop_button {
             let self_clone = self_rc.clone();
@@ -94,10 +94,10 @@ impl AppState {
         let factory = GladeObjectFactory::new();
         
         widgets.win = Some(factory.get("applicationwindow1"));
-        //window.set_title("castnow desktop-rs");
         widgets.file_path_entry = Some(factory.get("filePathEntry1"));
         widgets.popup_file_chooser_button = Some(factory.get("popupFileChooserButton"));
         widgets.play_button = Some(factory.get("playButton"));
+        widgets.stop_button = Some(factory.get("stopButton"));
         widgets.state_label = Some(factory.get("stateLabel"));
         widgets.file_chooser_dialog = Some(widgets::build_file_chooser());
     }
@@ -117,16 +117,18 @@ impl AppState {
     fn start_rendering_timer(&self, self_rc: &Rc<Self>) {
         let self_clone = self_rc.clone();
         gtk::timeout_add(100, move || {
-            //Render anything in the render queue
+            //If the command thread queued some message, get it and update teh model
             if let Some(ref rx) = self_clone.channels.borrow().rx {
                 while let Ok(state) = rx.try_recv() {
-                    println!("Received state in ui updater thread {:?}", state);
+                    println!("Received state in ui thread {:?}", state);
                     //let's assume we also got some name/value pairs with enough info to locate our widget and render it                    
                     //Modifying the model and updating it must be separate scopes
                     let mut model = self_clone.model.borrow_mut();
+                    model.state = state;
                     model.status = format!("{}", state);
                 }
             }
+            //Update the UI to reflect any changes
             if self_clone.model.borrow().is_dirty {
                 println!("Model dirty. Rendering...");
                 self_clone.render_dirty();

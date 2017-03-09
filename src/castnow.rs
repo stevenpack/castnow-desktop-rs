@@ -1,19 +1,23 @@
+use std::io::Error;
 use shell::Launcher;
+use state::State;
 
 #[derive(Debug)]
 pub struct Command {
     pub key: KeyCommand,
-    pub state: String
+    pub state: String,
+    pub current: State
 }
 
 impl Command {
-    pub fn new(key: KeyCommand) -> Command {
-        Self::new_with_state(key, String::default())
+    pub fn new(key: KeyCommand, current: State) -> Command {
+        Self::new_with_state(key, current, String::default())
     }
 
-    pub fn new_with_state(key: KeyCommand, state: String) -> Command {
+    pub fn new_with_state(key: KeyCommand, current: State, state: String) -> Command {
         Command {
             key: key,
+            current: current,
             state: state
         }
     }
@@ -54,7 +58,7 @@ impl NodeModuleWrapper {
         self.launcher.load(file);
     }
 
-    pub fn execute(&self, command: &Command) {
-        self.launcher.execute(&command.key);
+    pub fn execute(&self, command: &Command) -> Result<(),Error> {
+        self.launcher.execute(&command.key)
     }
 }

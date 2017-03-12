@@ -25,8 +25,8 @@ impl Command {
 
 #[derive(Debug)]
 pub enum KeyCommand {
-    Pause,
-    Mute,
+    TogglePlayPause,
+    ToggleMute,
     Stop,
     Load
 }
@@ -34,31 +34,10 @@ pub enum KeyCommand {
 impl KeyCommand {
     pub fn get_key(key: &KeyCommand) -> &'static str {
         match key {
-            &KeyCommand::Pause => "space",
-            &KeyCommand::Mute => "m",
+            &KeyCommand::TogglePlayPause => "space",
+            &KeyCommand::ToggleMute => "m",
             &KeyCommand::Stop => "s",
             _ => "no key assigned"
         }
-    }
-}
-
-pub struct NodeModuleWrapper {
-    launcher: Launcher
-}
-
-impl NodeModuleWrapper {
-
-    pub fn new() -> NodeModuleWrapper {
-        return NodeModuleWrapper{
-            launcher: Launcher::new()
-        };
-    }
-
-    pub fn load(&self, file: &String) {
-        self.launcher.load(file);
-    }
-
-    pub fn execute(&self, command: &Command) -> Result<(),Error> {
-        self.launcher.execute(&command.key)
     }
 }

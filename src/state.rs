@@ -6,9 +6,10 @@ pub enum State {
     Initial,
     Loading,
     Loaded,
+    Playing,
     Stopping,
     Stopped,
-    Playing,
+    Pausing,
     Paused,
     Error
 }
@@ -22,6 +23,7 @@ impl State {
         let new_state = match *current {            
             State::Loading  => State::Loaded,
             State::Stopping => State::Stopped,
+            State::Pausing => State::Paused,
             _ => {
                 println!("Unexpected state transition {:?}", *current);
                 State::Error
@@ -30,7 +32,6 @@ impl State {
         println!("{:?} -> {:?}", current, new_state);
         new_state        
     }
-    
 }
 
 impl fmt::Display for State {

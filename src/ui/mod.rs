@@ -128,6 +128,7 @@ impl AppState {
                     model.status = format!("{}", state);
                 }
             }
+            //println!("Checking...");
             //Update the UI to reflect any changes
             if self_clone.model.borrow().is_dirty {
                 println!("Model dirty. Rendering...");

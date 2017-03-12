@@ -17,15 +17,15 @@ fn main() {
     }
 
     //UI sends commands commands to Processor running on a different thread to the UI
-    let (tx1, rx1) = channel::<castnow::Command>();
-    let (tx2, rx2) = channel::<state::State>();
+    let (command_tx, command_rx) = channel::<castnow::Command>();
+    //The Procssor sends back to new state to render
+    let (state_tx, state_rx) = channel::<state::State>();
 
     let command_processor = command::Processor::new();    
-    command_processor.start(rx1, tx2);
-    //ui::build(tx1, rx2);
+    command_processor.start(command_rx, state_tx);
     let app = ui::AppState::new_rc();
     let app_rc = app.clone();
-    app.init(app_rc, rx2, tx1);
+    app.init(app_rc, state_rx, command_tx);
     
     gtk::main();
 }
